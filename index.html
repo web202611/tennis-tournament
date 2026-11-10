@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>网球比赛管理系统</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- 顶栏 -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">🎾</div>
+      <div class="header-info">
+        <h1 class="title">网球比赛管理系统</h1>
+        <p class="subtitle">四组单循环 → 八强淘汰 → 半决赛 → 季军赛 / 决赛</p>
+      </div>
+      <div class="header-actions">
+        <label class="cat-label">比赛类别</label>
+        <select id="catSelect" class="input select"></select>
+      </div>
+    </div>
+  </header>
+
+  <nav class="nav">
+    <div class="nav-inner">
+      <div class="nav-tab active" data-tab="signup">报名分组</div>
+      <div class="nav-tab" data-tab="group">小组赛</div>
+      <div class="nav-tab" data-tab="ko">淘汰赛</div>
+      <div class="nav-tab" data-tab="history">历史赛事</div>
+    </div>
+  </nav>
+
+  <main class="main">
+    <!-- ================= Tab 1：报名分组 ================= -->
+    <div id="tab-signup">
+      <!-- 赛事管理 -->
+      <section class="card">
+        <div class="card-title-row">
+          <div class="card-title">赛事管理</div>
+          <div class="toolbar-right">
+            <button class="btn-ghost" id="btnDeleteTour">删除当前赛事</button>
+            <button class="btn-primary" id="btnNewTour">新建赛事（归档当前）</button>
+          </div>
+        </div>
+        <div class="form-bar tour-bar">
+          <label class="inline-label">历史/当前赛事</label>
+          <select id="tourSelect" class="input select tour-select"></select>
+          <label class="inline-label">比赛时间</label>
+          <input type="date" id="tourDate" class="input" />
+          <span class="tag tag-blue" id="tourStatus">进行中</span>
+        </div>
+        <p class="form-tip">每场赛事独立保存（含比赛时间、报名、赛程与冠军）。比赛全部结束后点击「新建赛事」，当前赛事自动归档；历史赛事可在上方下拉中随时查看（只读）。</p>
+      </section>
+
+      <!-- 类别管理 -->
+      <section class="card">
+        <div class="card-title">比赛类别</div>
+        <div class="cat-grid" id="catGrid"></div>
+        <div class="form-bar" style="margin-top:16px;">
+          <input id="newCatName" class="input" placeholder="新类别名称（如：青年组男单）" />
+          <select id="newCatType" class="input select">
+            <option value="singles">单打（1 人一队）</option>
+            <option value="doubles">双打（2 人一队）</option>
+          </select>
+          <button class="btn-success" id="btnAddCat">添加类别</button>
+        </div>
+      </section>
+
+      <!-- 参赛报名 -->
+      <section class="card">
+        <div class="card-title-row">
+          <div class="card-title">参赛报名 <span class="card-sub-inline" id="signupCatHint"></span></div>
+          <div class="toolbar-right">
+            <button class="btn-ghost" id="btnDemo">一键演示数据</button>
+          </div>
+        </div>
+        <div class="form-bar">
+          <input id="p1" class="input" placeholder="队员 1 姓名 *" />
+          <input id="p2" class="input" placeholder="队员 2 姓名（双打必填）" />
+          <button class="btn-success" id="btnAddTeam">报名</button>
+        </div>
+        <div class="table-wrap" style="margin-top:16px;">
+          <table class="table">
+            <thead><tr><th style="width:60px;">序号</th><th>队伍 / 队员</th><th style="width:80px;">操作</th></tr></thead>
+            <tbody id="teamTbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 分组抽签 -->
+      <section class="card">
+        <div class="card-title-row">
+          <div class="card-title">分组抽签（4 组 × 4 队，需报满 16 队）</div>
+          <div class="toolbar-right">
+            <button class="btn-primary" id="btnDraw">随机抽签</button>
+          </div>
+        </div>
+        <div class="group-grid" id="groupGrid"></div>
+        <p class="form-tip">抽签后可在下方生成小组单循环赛程；小组赛开赛后将不可重新抽签。</p>
+        <div style="margin-top:12px;">
+          <button class="btn-primary" id="btnGenGM">生成小组赛程</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- ================= Tab 2：小组赛 ================= -->
+    <div id="tab-group" style="display:none;">
+      <div id="tourBadgeGroup"></div>
+      <div id="groupStageWrap"></div>
+      <section class="card">
+        <div class="card-title-row">
+          <div class="card-title">晋级淘汰赛</div>
+          <div class="toolbar-right">
+            <span class="form-tip-inline" id="gmProgress"></span>
+            <button class="btn-primary" id="btnBuildKo">生成淘汰赛对阵</button>
+          </div>
+        </div>
+        <p class="form-tip">每组前两名晋级（共 8 队）。1/4 决赛对阵：A组第1 vs B组第2、C组第1 vs D组第2、B组第1 vs A组第2、D组第1 vs C组第2。同积分按净胜分排序。</p>
+      </section>
+    </div>
+
+    <!-- ================= Tab 3：淘汰赛 ================= -->
+    <div id="tab-ko" style="display:none;">
+      <div id="tourBadgeKo"></div>
+      <section class="card">
+        <div class="card-title-row">
+          <div class="card-title">淘汰赛对阵图</div>
+          <div class="toolbar-right">
+            <button class="btn-ghost" id="btnRebuildKo">重新生成对阵</button>
+          </div>
+        </div>
+        <div id="championBanner"></div>
+        <div class="bracket" id="bracket"></div>
+        <p class="form-tip">半决赛负者进入季军赛；点击可编辑的对阵卡录入比分，比分高者获胜。</p>
+      </section>
+    </div>
+
+    <!-- ================= Tab 4：历史赛事 ================= -->
+    <div id="tab-history" style="display:none;">
+      <div id="histQuick"></div>
+      <div id="histBadge"></div>
+      <section class="card">
+        <div class="card-title">最终名次</div>
+        <div id="histChampion"></div>
+      </section>
+      <section class="card">
+        <div class="card-title">小组赛全程比分（单循环 + 积分榜）</div>
+        <div id="histGroups"></div>
+      </section>
+      <section class="card">
+        <div class="card-title">淘汰赛全程比分</div>
+        <div id="histKo"></div>
+      </section>
+      <p class="form-tip">在「报名分组 → 赛事管理」下拉中选择任意往届赛事，即可在此查看该届比赛的完整过程与比分（只读）。</p>
+    </div>
+  </main>
+
+  <footer class="footer">网球比赛管理系统 · 数据保存在浏览器本地（localStorage）</footer>
+
+  <!-- 比分录入弹窗 -->
+  <div class="modal-mask" id="scoreMask" style="display:none;">
+    <div class="modal">
+      <div class="modal-title" id="scoreModalTitle">录入比分</div>
+      <div class="score-modal-rows">
+        <div class="score-row">
+          <span class="score-side" id="scoreNameA">-</span>
+          <input id="scoreA" class="input score-input" type="number" min="0" />
+        </div>
+        <div class="score-vs">VS</div>
+        <div class="score-row">
+          <span class="score-side" id="scoreNameB">-</span>
+          <input id="scoreB" class="input score-input" type="number" min="0" />
+        </div>
+      </div>
+      <p class="form-tip">双方比分不能相同，比分高的一方获胜（可按局数或总分录入）。</p>
+      <div class="modal-actions">
+        <button class="btn-danger" id="btnScoreClear">清除结果</button>
+        <button class="btn-ghost" id="btnScoreCancel">取消</button>
+        <button class="btn-primary" id="btnScoreSave">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
